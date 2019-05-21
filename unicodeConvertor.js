@@ -1,17 +1,25 @@
-
-let unicodeConvertor = {
-	format: (str) => {
-		str = String(str);
-
-		let result = '';
-		for (let i = 0; i < str.length; i ++) {
-			result += '\\u' + str[i].charCodeAt().toString(16);
-		}
-		return result;
-	},
-	parse: (unicode) => {
-		return unicode.split('\\u').filter((n) => n != '').map(n => String.fromCodePoint(Number('0x' + n))).join('');
-	}
+function encodeUnicode(str) {
+    return (str + '')
+        .split('')
+        .map(char => '\\u{' + char.codePointAt(0).toString(16).padStart(4, '0') + '}')
+        .join('');
 }
+function decodeUnicode(unicodeStr) {
+    return (unicodeStr + '')
+        .split(/(\\u(?:\{\w{4,}\}|\w{4}))/)
+        .filter(str => str)
+        .map(str => {
+            if (/^\\u/.test(str)) {
+                let codePoint = parseInt(str.replace(/^\\u{?/, '').replace(/}$/, ''), 16);
 
-export default unicodeConvertor;
+                if (Number.isNaN(codePoint)) {
+                    return str;
+                } else {
+                    return String.fromCodePoint(codePoint);
+                }
+            } else {
+                return str;
+            }
+        })
+        .join('');
+};
